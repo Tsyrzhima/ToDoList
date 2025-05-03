@@ -1,0 +1,50 @@
+services:
+  web:
+      image: nginx
+      ports:
+        - 8083:80
+      volumes:
+        - ./docker/nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+        - .:/var/www/html
+      restart: always
+      depends_on:
+        - php-fpm
+        - db
+  php-fpm:
+      build: ./docker/php
+      restart: always
+      depends_on:
+          -   redis
+      volumes:
+        - .:/var/www/html
+        - ./docker/php/xdebug.ini:/usr/local/etc/php/conf.d/docker-php-xdebug.ini
+  db:
+      image: mysql:8.0
+      restart: always
+      environment:
+          MYSQL_DATABASE: ${DB_DATABASE}
+          MYSQL_USER: ${DB_USERNAME}
+          MYSQL_PASSWORD: ${DB_PASSWORD}
+          MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      ports:
+          - 33061:3306
+  rabbitmq:
+      image: rabbitmq:3-management
+      restart: always
+      environment:
+          - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER}
+          - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASSWORD}
+      ports:
+          - "56720:5672"  # AMQP порт
+          - "15673:15672"  # Web UI порт
+      volumes:
+          - .:/var/lib/rabbitmq
+          - ./data/rabbitmq:/var/lib/rabbitmq:rw
+  redis:
+      image: redis:alpine
+      container_name: redis
+      ports:
+        - "6379:6379"
+      restart: unless-stopped
+      volumes:
+          -   ./data/redis:/var/lib/redis:rw
