@@ -26,9 +26,11 @@ class TaskService
         return Task::query()->findOrFail($id);
     }
 
-    public function update(UpdateTaskDTO $data, int $id): Task|bool
+    public function update(UpdateTaskDTO $data, int $id): Task
     {
-        return Task::findOrFail($id)->updateOrFail($data->toArray());
+        $task = Task::query()->findOrFail($id);
+        $task->update($data->toArray());
+        return $task;
     }
 
     public function delete(int $id)

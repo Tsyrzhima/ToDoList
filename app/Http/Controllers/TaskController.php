@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\DTO\CreateTaskDTO;
 use App\DTO\UpdateTaskDTO;
+use App\Enums\TaskStatusEnum;
 use App\Http\Requests\CreateTaskRequest;
 use App\Http\Requests\UpdateTaskRequest;
 use App\Http\Resources\TaskCollectionResource;
@@ -18,29 +19,29 @@ class TaskController extends Controller
     {
         $this->taskService = $taskService;
     }
-    public function getAll()
+    public function getAll(): TaskCollectionResource
     {
-        $perPage = request()->input('perPage', 15);
+        $perPage = request()->input('perPage', 3);
         $tasks = $this->taskService->getAll($perPage);
 
         return new TaskCollectionResource($tasks);
     }
 
-    public function create(CreateTaskRequest $request)
+    public function create(CreateTaskRequest $request): TaskResource
     {
         $data = $request->validated();
 
         $dto = new CreateTaskDTO(
             $data['title'],
             $data['description'] ?? null,
-            $data['status'] ?? 'pending' // заменить на enum
+            $data['status'] ?? TaskStatusEnum::PENDING->value
         );
         $task = $this->taskService->create($dto);
 
         return new TaskResource($task);
     }
 
-    public function getById(int $id)
+    public function getById(int $id): TaskResource
     {
         $task = $this->taskService->getById($id);
 
@@ -48,22 +49,22 @@ class TaskController extends Controller
 
     }
 
-    public function update(UpdateTaskRequest $request, int $id)
+    public function update(UpdateTaskRequest $request, int $id): TaskResource
     {
         $data = $request->validated();
 
-        $data = new UpdateTaskDTO(
+        $dto = new UpdateTaskDTO(
             $data['title'] ?? null,
             $data['description'] ?? null,
             $data['status'] ?? null
         );
 
-        $task = $this->taskService->update($data, $id);
+        $task = $this->taskService->update($dto, $id);
 
         return new TaskResource($task);
     }
 
-    public function delete(int $id)
+    public function delete(int $id): int|bool
     {
         return $this->taskService->delete($id);
     }

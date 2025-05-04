@@ -10,9 +10,7 @@ class CreateTaskRequest extends BaseTaskRequest
 {
     public function rules(): array
     {
-        return array_merge($this->baseRules(), [
-            'per_page' => 'sometimes|integer|min:1|max:100',
-        ]);
+        return array_merge($this->baseRules());
     }
     public function messages(): array
     {
