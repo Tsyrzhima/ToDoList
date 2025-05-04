@@ -8,54 +8,31 @@ use App\Models\Task;
 
 
 // Логики пока нет, на будущее
+
 class TaskService
 {
-    public function getAll(int $perPage = 15)
+    public function getAll(int $perPage)
     {
         return Task::paginate($perPage);
     }
 
     public function create(CreateTaskDTO $data): Task
     {
-        $task = Task::create($data->toArray());
-
-        return $task;
+        return Task::create($data->toArray());
     }
 
     public function getById(int $id): ?Task
     {
-        $task = Task::find($id);
-
-        if($task){
-            return $task;
-        }else{
-            return null;
-        }
+        return Task::query()->findOrFail($id);
     }
 
-    public function update(UpdateTaskDTO $data, int $id): ?Task
+    public function update(UpdateTaskDTO $data, int $id): Task|bool
     {
-        $task = Task::find($id);
-
-        if($task){
-            $task->update($data->toArray());
-            return $task;
-        }else
-        {
-            return null;
-        }
+        return Task::findOrFail($id)->updateOrFail($data->toArray());
     }
 
-    public function delete(int $id): bool
+    public function delete(int $id)
     {
-        $task = Task::query()->find($id);
-
-        if($task){
-            $task->delete();
-            return true;
-        }else
-        {
-            return false;
-        }
+        return Task::destroy($id);
     }
 }

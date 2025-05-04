@@ -6,7 +6,7 @@ use App\DTO\CreateTaskDTO;
 use App\DTO\UpdateTaskDTO;
 use App\Http\Requests\CreateTaskRequest;
 use App\Http\Requests\UpdateTaskRequest;
-use App\Http\Resources\TaskCollection;
+use App\Http\Resources\TaskCollectionResource;
 use App\Http\Resources\TaskResource;
 use App\Services\TaskService;
 use Illuminate\Routing\Controller;
@@ -23,7 +23,7 @@ class TaskController extends Controller
         $perPage = request()->input('perPage', 15);
         $tasks = $this->taskService->getAll($perPage);
 
-        return new TaskCollection($tasks);
+        return new TaskCollectionResource($tasks);
     }
 
     public function create(CreateTaskRequest $request)
@@ -33,7 +33,7 @@ class TaskController extends Controller
         $dto = new CreateTaskDTO(
             $data['title'],
             $data['description'] ?? null,
-            $data['status'] ?? 'pending'
+            $data['status'] ?? 'pending' // заменить на enum
         );
         $task = $this->taskService->create($dto);
 
@@ -44,10 +44,7 @@ class TaskController extends Controller
     {
         $task = $this->taskService->getById($id);
 
-        if ($task) {
-            return new TaskResource($task);
-        }
-        return response()->json(['message' => 'Задача не найдена']);
+        return new TaskResource($task);
 
     }
 
@@ -55,27 +52,19 @@ class TaskController extends Controller
     {
         $data = $request->validated();
 
-        $task = $this->taskService->getById($id);
-        if($task) {
-            $dto = new UpdateTaskDTO(
-                $data['title'] ?? null,
-                $data['description'] ?? null,
-                $data['status'] ?? null
-            );
-            $task = $this->taskService->update($dto, $id);
-            return new TaskResource($task);
-        }
-        return response()->json(['message' => 'Задача не найдена']);
+        $data = new UpdateTaskDTO(
+            $data['title'] ?? null,
+            $data['description'] ?? null,
+            $data['status'] ?? null
+        );
+
+        $task = $this->taskService->update($data, $id);
+
+        return new TaskResource($task);
     }
 
     public function delete(int $id)
     {
-        $result = $this->taskService->delete($id);
-
-        if($result){
-            return response()->json(['message' => 'Задача удалена']);
-        }else{
-            return response()->json(['message' => 'Задача не найдена']);
-        }
+        return $this->taskService->delete($id);
     }
 }
